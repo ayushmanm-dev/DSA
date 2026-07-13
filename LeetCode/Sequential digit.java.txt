@@ -1,0 +1,26 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+class Solution {
+    public List<Integer> sequentialDigits(int low, int high) {
+        List<Integer> result = new ArrayList<>();
+        String sample = "123456789";
+        
+        int lowLen = String.valueOf(low).length();
+        int highLen = String.valueOf(high).length();
+        
+        for (int length = lowLen; length <= highLen; length++) {
+            for (int start = 0; start <= sample.length() - length; start++) {
+                String substring = sample.substring(start, start + length);
+                int num = Integer.parseInt(substring);
+                
+                if (num >= low && num <= high) {
+                    result.add(num);
+                }
+            }
+        }
+        
+        return result;
+    }
+}
