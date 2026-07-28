@@ -1,0 +1,22 @@
+import java.util.Arrays;
+
+class Solution {
+    public String smallestPalindrome(String s) {
+        int n = s.length();
+        int halfLen = n / 2;
+        
+        char[] half = s.substring(0, halfLen).toCharArray();
+        
+        Arrays.sort(half);
+        
+        String leftHalf = new String(half);
+        StringBuilder rightHalf = new StringBuilder(leftHalf).reverse();
+        
+        if (n % 2 == 1) {
+            char mid = s.charAt(halfLen);
+            return leftHalf + mid + rightHalf.toString();
+        } else {
+            return leftHalf + rightHalf.toString();
+        }
+    }
+}
