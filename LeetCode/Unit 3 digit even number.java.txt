@@ -1,0 +1,30 @@
+class Solution {
+    public int totalNumbers(int[] digits) {
+        int[] count = new int[10];
+        for (int digit : digits) {
+            count[digit]++;
+        }
+        
+        int validNumbers = 0;
+        
+        for (int num = 100; num <= 998; num += 2) {
+            int ones = num % 10;
+            int tens = (num / 10) % 10;
+            int hundreds = num / 100;
+            
+            count[ones]--;
+            count[tens]--;
+            count[hundreds]--;
+            
+            if (count[ones] >= 0 && count[tens] >= 0 && count[hundreds] >= 0) {
+                validNumbers++;
+            }
+            
+            count[ones]++;
+            count[tens]++;
+            count[hundreds]++;
+        }
+        
+        return validNumbers;
+    }
+}
