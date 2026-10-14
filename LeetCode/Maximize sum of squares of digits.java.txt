@@ -1,0 +1,25 @@
+class Solution {
+    public String maxSumOfSquares(int num, int sum) {
+        if (sum < 1 || sum > 9 * num) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        int remainingSum = sum;
+        
+        for (int i = 0; i < num; i++) {
+            int remainingDigits = num - 1 - i;
+            for (int d = 9; d >= 0; d--) {
+                if (remainingSum - d <= 9 * remainingDigits && remainingSum - d >= (i == 0 && remainingDigits == 0 ? 0 : 0)) {
+                    if (i == 0 && d == 0 && num > 1) continue;
+                    
+                    sb.append(d);
+                    remainingSum -= d;
+                    break;
+                }
+            }
+        }
+        
+        return sb.toString();
+    }
+}
