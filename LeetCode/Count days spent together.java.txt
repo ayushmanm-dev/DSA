@@ -1,0 +1,26 @@
+class Solution {
+    public int countDaysTogether(String arriveAlice, String leaveAlice, String arriveBob, String leaveBob) {
+        int a1 = dayOfYear(arriveAlice);
+        int l1 = dayOfYear(leaveAlice);
+        int a2 = dayOfYear(arriveBob);
+        int l2 = dayOfYear(leaveBob);
+        
+        int startOverlap = Math.max(a1, a2);
+        int endOverlap = Math.min(l1, l2);
+        
+        return Math.max(0, endOverlap - startOverlap + 1);
+    }
+    
+    private int dayOfYear(String dateStr) {
+        int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        String[] parts = dateStr.split("-");
+        int month = Integer.parseInt(parts[0]);
+        int day = Integer.parseInt(parts[1]);
+        
+        int dayOfYear = day;
+        for (int i = 0; i < month - 1; i++) {
+            dayOfYear += daysInMonth[i];
+        }
+        return dayOfYear;
+    }
+}
