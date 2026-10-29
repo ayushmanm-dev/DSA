@@ -1,0 +1,224 @@
+import java.util.*;
+
+class Solution {
+
+    int n;
+    List<Integer>[] graph;
+
+    int[] parent, depth, size, heavy;
+    int[] head, pos, rev;
+    int curPos;
+
+    int[] segmentTree;
+    char[] chars;
+
+    // First DFS: Calculate subtree sizes and heavy children
+    void dfs1(int u, int p) {
+        parent[u] = p;
+        size[u] = 1;
+        heavy[u] = -1;
+
+        int maxSize = 0;
+
+        for (int v : graph[u]) {
+            if (v == p) continue;
+
+            depth[v] = depth[u] + 1;
+            dfs1(v, u);
+
+            size[u] += size[v];
+
+            if (size[v] > maxSize) {
+                maxSize = size[v];
+                heavy[u] = v;
+            }
+        }
+    }
+
+    // Second DFS: Heavy-Light Decomposition
+    void dfs2(int u, int h) {
+        head[u] = h;
+        pos[u] = curPos;
+        rev[curPos] = u;
+        curPos++;
+
+        if (heavy[u] != -1) {
+            dfs2(heavy[u], h);
+        }
+
+        for (int v : graph[u]) {
+            if (v == parent[u] || v == heavy[u]) {
+                continue;
+            }
+
+            dfs2(v, v);
+        }
+    }
+
+    // Convert character into a bit mask
+    int getMask(char c) {
+        return 1 << (c - 'a');
+    }
+
+    // Build segment tree
+    void build(int node, int l, int r) {
+        if (l == r) {
+            segmentTree[node] =
+                getMask(chars[rev[l]]);
+            return;
+        }
+
+        int mid = (l + r) / 2;
+
+        build(node * 2, l, mid);
+        build(node * 2 + 1, mid + 1, r);
+
+        segmentTree[node] =
+            segmentTree[node * 2] ^
+            segmentTree[node * 2 + 1];
+    }
+
+    // Update one character
+    void update(int node, int l, int r,
+                int index, int value) {
+
+        if (l == r) {
+            segmentTree[node] = value;
+            return;
+        }
+
+        int mid = (l + r) / 2;
+
+        if (index <= mid) {
+            update(node * 2, l, mid, index, value);
+        } else {
+            update(node * 2 + 1, mid + 1, r,
+                   index, value);
+        }
+
+        segmentTree[node] =
+            segmentTree[node * 2] ^
+            segmentTree[node * 2 + 1];
+    }
+
+    // Query XOR mask over a segment
+    int querySegment(int node, int l, int r,
+                     int ql, int qr) {
+
+        if (qr < l || r < ql) {
+            return 0;
+        }
+
+        if (ql <= l && r <= qr) {
+            return segmentTree[node];
+        }
+
+        int mid = (l + r) / 2;
+
+        return querySegment(
+                    node * 2, l, mid, ql, qr)
+             ^ querySegment(
+                    node * 2 + 1, mid + 1, r, ql, qr);
+    }
+
+    // XOR mask of all characters on path u -> v
+    int queryPath(int u, int v) {
+        int result = 0;
+
+        while (head[u] != head[v]) {
+
+            if (depth[head[u]] < depth[head[v]]) {
+                int temp = u;
+                u = v;
+                v = temp;
+            }
+
+            result ^= querySegment(
+                1, 0, n - 1, pos[head[u]], pos[u]
+            );
+
+            u = parent[head[u]];
+        }
+
+        int left = Math.min(pos[u], pos[v]);
+        int right = Math.max(pos[u], pos[v]);
+
+        result ^= querySegment(
+            1, 0, n - 1, left, right
+        );
+
+        return result;
+    }
+
+    // At most one character may have odd frequency
+    boolean canFormPalindrome(int mask) {
+        return (mask & (mask - 1)) == 0;
+    }
+
+    // IMPORTANT: Exact method signature expected by the driver
+    public List<Boolean> palindromePath(
+        int n,
+        int[][] edges,
+        String s,
+        String[] queries
+    ) {
+        this.n = n;
+        this.chars = s.toCharArray();
+
+        graph = new ArrayList[n];
+
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+
+        for (int[] edge : edges) {
+            graph[edge[0]].add(edge[1]);
+            graph[edge[1]].add(edge[0]);
+        }
+
+        parent = new int[n];
+        depth = new int[n];
+        size = new int[n];
+        heavy = new int[n];
+
+        dfs1(0, -1);
+
+        head = new int[n];
+        pos = new int[n];
+        rev = new int[n];
+
+        curPos = 0;
+        dfs2(0, 0);
+
+        segmentTree = new int[4 * n];
+        build(1, 0, n - 1);
+
+        List<Boolean> answer = new ArrayList<>();
+
+        for (String q : queries) {
+            String[] parts = q.split("\\s+");
+
+            if (parts[0].equals("update")) {
+                int u = Integer.parseInt(parts[1]);
+                char c = parts[2].charAt(0);
+
+                chars[u] = c;
+
+                update(
+                    1, 0, n - 1,
+                    pos[u], getMask(c)
+                );
+
+            } else {
+                int u = Integer.parseInt(parts[1]);
+                int v = Integer.parseInt(parts[2]);
+
+                int mask = queryPath(u, v);
+
+                answer.add(canFormPalindrome(mask));
+            }
+        }
+
+        return answer;
+    }
+}
